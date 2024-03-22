@@ -3,6 +3,10 @@
 typedef struct GameState
 {
     // define your struct here
+    char **board;
+    int **stack_heights;
+    int rows;
+    int cols;
 } GameState;
 
 GameState* initialize_game_state(const char *filename);
