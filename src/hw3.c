@@ -8,6 +8,64 @@
 
 #define DEBUG(...) fprintf(stderr, "[          ] [ DEBUG ] "); fprintf(stderr, __VA_ARGS__); fprintf(stderr, " -- %s()\n", __func__)
 
+// // Function to initialize a stack
+// GameStateStack *init_stack() {
+//     GameStateStack *stack = (GameStateStack *)malloc(sizeof(GameStateStack));
+//     stack->top = NULL;
+//     return stack;
+// }
+
+// // Function to push a game state onto the stack
+// void push(GameStateStack *stack, GameState *state) {
+//     GameStateStackNode *node = (GameStateStackNode *)malloc(sizeof(GameStateStackNode));
+//     node->state = state;
+//     node->next = stack->top;
+//     stack->top = node;
+// }
+
+// // Function to pop a game state from the stack
+// GameState *pop(GameStateStack *stack) {
+//     if (stack->top == NULL) {
+//         return NULL;
+//     }
+//     GameStateStackNode *temp = stack->top;
+//     stack->top = stack->top->next;
+//     GameState *state = temp->state;
+//     free(temp);
+//     return state;
+// }
+
+// // Function to create a deep copy of a GameState
+// GameState *copy_game_state(const GameState *original) {
+//     GameState *copy = (GameState *)malloc(sizeof(GameState));
+
+//     copy->rows = original->rows;
+//     copy->cols = original->cols;
+
+//     copy->board = (char **)malloc(copy->rows * sizeof(char *));
+//     copy->stack_heights = (int **)malloc(copy->rows * sizeof(int *));
+
+//     for (int i = 0; i < copy->rows; i++) {
+//         copy->board[i] = (char *)malloc((copy->cols) * sizeof(char));
+//         copy->stack_heights[i] = (int *)malloc(copy->cols * sizeof(int));
+
+//         // Copy the contents of the board and stack_heights arrays
+//         strcpy(copy->board[i], original->board[i]);
+//         memcpy(copy->stack_heights[i], original->stack_heights[i], copy->cols * sizeof(int));
+//     }
+
+//     return copy;
+// }
+
+
+// void free_game_state_history(GameState *game) {
+//     while (game->history->top != NULL) {
+//         GameState *state = pop(game->history);
+//         free_game_state(state);
+//     }
+//     free(game->history);
+// }
+
 GameState* initialize_game_state(const char *filename) {
     // (void)filename;
     // return NULL;
@@ -38,6 +96,7 @@ GameState* initialize_game_state(const char *filename) {
 
     // Allocate memory for the GameState struct
     GameState *game = (GameState *)malloc(sizeof(GameState));
+    //  game->history = init_stack();
 
     // Initialize the GameState struct with the dimensions of the board
     game->rows = rows;
@@ -169,7 +228,10 @@ int is_valid_move(GameState *game, int row, int col, char direction, const char 
             start_index--;
         }
         word_length += strlen(tiles);
-        for(int i=col+strlen(tiles); game->board[row][i]!='.'; i++){
+        for(int i=col+strlen(tiles); i<game->cols; i++){
+            if(game->board[row][i]=='.'){
+                break;
+            }
             word_length++;
         }
     }else{
@@ -179,7 +241,10 @@ int is_valid_move(GameState *game, int row, int col, char direction, const char 
             start_index--;
         }
         word_length += strlen(tiles);
-        for(int i=row+strlen(tiles); game->board[i][col]!='.'; i++){
+        for(int i=row+strlen(tiles); i<game->rows; i++){
+            if(game->board[i][col]=='.'){
+                break;
+            }
             word_length++;
         }
     }
@@ -281,6 +346,9 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
         return game;
     }
 
+    // GameState *prev_state = copy_game_state(game);  // Create a copy of the current game state
+    // push(game->history, prev_state);  // Push the current state onto the history stack
+
     *num_tiles_placed = 0;
 
     // Determine the number of tiles to be placed
@@ -296,17 +364,6 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
     // Place tiles on the board
     if (direction == 'H')
     {
-        // for (int j = col; j < col + num_tiles; j++)
-        // {
-        //     // Determine the height of the stack at the current position
-        //     int stack_height = game->stack_heights[row][j];
-        //     // Update the stack height
-        //     game->stack_heights[row][j]++;
-        //     // Place the tile on the board
-        //     game->board[row][j] = tiles[*num_tiles_placed++];
-        //     // Increment the number of tiles placed
-        //     (*num_tiles_placed)++;
-        // }
         for (int j = 0; j < (int)strlen(tiles); j++)
         {
             // Determine the height of the stack at the current position
@@ -322,19 +379,7 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
         }
     }
     else
-    { // direction == 'V'
-        // for (int i = row; i < row + num_tiles; i++)
-        // {
-        //     // Determine the height of the stack at the current position
-        //     int stack_height = game->stack_heights[i][col];
-        //     // Update the stack height
-        //     game->stack_heights[i][col]++;
-        //     // Place the tile on the board
-        //     game->board[i][col] = tiles[*num_tiles_placed++];
-        //     // Increment the number of tiles placed
-        //     (*num_tiles_placed)++;
-        //     // Update stack heights for tiles underneath if stacked
-        // }
+    {
         for (int j = 0; j < (int)strlen(tiles); j++)
         {
             // Determine the height of the stack at the current position
@@ -356,6 +401,15 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
 GameState* undo_place_tiles(GameState *game) {
     (void)game;
     return NULL;
+    // GameState *prev_state = pop(game->history);  // Pop the previous game state from the history
+
+    // if (prev_state == NULL) {
+    //     return game;  // No previous state, return the current state unchanged
+    // }
+
+    // game = prev_state;  // Set the game state to the previous state
+
+    // return game;
 }
 
 void free_game_state(GameState *game) {
@@ -373,7 +427,7 @@ void free_game_state(GameState *game) {
 void save_game_state(GameState *game, const char *filename) {
     // (void)game;
     // (void)filename;
-        FILE *file = fopen(filename, "w");
+    FILE *file = fopen(filename, "w");
 
     // Write the board state to the file
     for (int i = 0; i < game->rows; i++)
