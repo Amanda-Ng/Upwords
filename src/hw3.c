@@ -134,7 +134,7 @@ GameState* initialize_game_state(const char *filename) {
 int is_legal_word(const char *word)
 {
     // Open the dictionary file
-    FILE *file = fopen("words.txt", "r");
+    FILE *file = fopen("tests/words.txt", "r");
 
     // Convert the provided word to lowercase for case-insensitive comparison
     char *lowercase_word = (char *)malloc(strlen(word) + 1);
@@ -396,6 +396,7 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
     }
 
     return game;
+    printf("%d", *num_tiles_placed);
 }
 
 GameState* undo_place_tiles(GameState *game) {
