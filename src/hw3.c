@@ -66,6 +66,15 @@
 //     free(game->history);
 // }
 
+void print_game(GameState* game){
+    for(int i=0;i<game->rows; i++){
+        for(int j=0; j<game->cols; j++){
+            printf("%c", game->board[i][j]);
+        }
+        printf("\n");
+    }
+}
+
 GameState* initialize_game_state(const char *filename) {
     // (void)filename;
     // return NULL;
@@ -105,28 +114,42 @@ GameState* initialize_game_state(const char *filename) {
     game->stack_heights = (int **)malloc(rows * sizeof(int *));
 
     // Read the contents of the file and initialize the game board
-    int row = 0;
-    int col = 0;
-    while ((ch = fgetc(file)) != EOF)
-    {
-        if (ch == '\n')
-        {
-            row++;
-            col = 0;
-            continue;
+    // int row = 0;
+    // int col = 0;
+    // while ((ch = fgetc(file)) != EOF)
+    // {
+    //     if (ch == '\n')
+    //     {
+    //         row++;
+    //         col = 0;
+    //         continue;
+    //     }
+    //     // Allocate memory for the current row if not already allocated
+    //     if (game->board[row] == NULL)
+    //     {
+    //         game->board[row] = (char *)malloc((cols) * sizeof(char));
+    //         // game->board[row][cols] = '\0';
+    //         game->stack_heights[row] = (int *)malloc(cols * sizeof(int));
+    //     }
+    //     // Assign the character to the corresponding cell on the board
+    //     game->board[row][col] = ch;
+    //     game->stack_heights[row][col] = (ch == '.') ? 0 : 1;
+    //     col++;
+    // }
+    
+    for(int i=0; i<game->rows;i++){
+        game->board[i] = (char *)malloc((cols) * sizeof(char));
+        game->stack_heights[i] = (int *)malloc(cols * sizeof(int));
+        for(int j=0; j<game->cols;j++){
+            ch = fgetc(file);
+            if(ch=='\n'){
+                ch = fgetc(file);
+            }
+            game->board[i][j] = ch;
+            game->stack_heights[i][j] = (ch == '.') ? 0 : 1;
         }
-        // Allocate memory for the current row if not already allocated
-        if (game->board[row] == NULL)
-        {
-            game->board[row] = (char *)malloc((cols) * sizeof(char));
-            game->stack_heights[row] = (int *)malloc(cols * sizeof(int));
-        }
-        // Assign the character to the corresponding cell on the board
-        game->board[row][col] = ch;
-        game->stack_heights[row][col] = (ch == '.') ? 0 : 1;
-        col++;
     }
-
+print_game(game);
     fclose(file);
     return game;
 }
@@ -396,7 +419,7 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
     }
 
     return game;
-    printf("%d", *num_tiles_placed);
+    printf("Number of tiles placed: %d", *num_tiles_placed);
 }
 
 GameState* undo_place_tiles(GameState *game) {
