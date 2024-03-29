@@ -149,7 +149,7 @@ GameState* initialize_game_state(const char *filename) {
             game->stack_heights[i][j] = (ch == '.') ? 0 : 1;
         }
     }
-print_game(game);
+// print_game(game);
     fclose(file);
     return game;
 }
