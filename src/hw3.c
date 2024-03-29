@@ -364,10 +364,10 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
     // (void)num_tiles_placed;
     // return NULL;
 
-    if (!is_valid_move(game, row, col, direction, tiles))
-    {
-        return game;
-    }
+    // if (!is_valid_move(game, row, col, direction, tiles))
+    // {
+    //     return game;
+    // }
 
     // GameState *prev_state = copy_game_state(game);  // Create a copy of the current game state
     // push(game->history, prev_state);  // Push the current state onto the history stack
