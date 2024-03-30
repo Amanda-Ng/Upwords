@@ -73,6 +73,12 @@ void print_game(GameState* game){
         }
         printf("\n");
     }
+        for(int i=0;i<game->rows; i++){
+        for(int j=0; j<game->cols; j++){
+            printf("%d", game->stack_heights[i][j]);
+        }
+        printf("\n");
+    }
 }
 
 GameState* initialize_game_state(const char *filename) {
@@ -150,6 +156,9 @@ GameState* initialize_game_state(const char *filename) {
         }
     }
 // print_game(game);
+printf("Rows: %d", game->rows);
+printf("Cols: %d", game->cols);
+print_game(game);
     fclose(file);
     return game;
 }
@@ -200,9 +209,11 @@ void expand_board(GameState *game, int num_rows, int num_cols) {
         // Reallocate memory for each row in the board
         for (int i = 0; i < game->rows; i++) {
             game->board[i] = (char *)realloc(game->board[i], (game->cols + num_cols) * sizeof(char));
+            game->stack_heights[i] = (int *)realloc(game->stack_heights[i], (game->cols + num_cols) * sizeof(int));
             // Initialize new columns with empty spaces
             for (int j = game->cols; j < game->cols + num_cols; j++) {
                 game->board[i][j] = '.';
+                game->stack_heights[i][j] = 0;
             }
         }
         // Update the number of columns
@@ -213,12 +224,15 @@ void expand_board(GameState *game, int num_rows, int num_cols) {
     if (num_rows > 0) {
         // Reallocate memory for the board to add new rows
         game->board = (char **)realloc(game->board, (game->rows + num_rows) * sizeof(char *));
+        game->stack_heights = (int **)realloc(game->stack_heights, (game->rows + num_rows) * sizeof(int *));
         // Initialize new rows
         for (int i = game->rows; i < game->rows + num_rows; i++) {
             game->board[i] = (char *)malloc((game->cols) * sizeof(char));
+            game->stack_heights[i] = (int *)malloc((game->cols) * sizeof(int));
             // Initialize new row with empty spaces
             for (int j = 0; j < game->cols; j++) {
                 game->board[i][j] = '.';
+                game->stack_heights[i][j] = 0;
             }
         }
         // Update the number of rows
@@ -229,24 +243,16 @@ void expand_board(GameState *game, int num_rows, int num_cols) {
 // Function to check if the move is valid
 int is_valid_move(GameState *game, int row, int col, char direction, const char *tiles)
 {
-    // Check if row and col are valid
-    if (row < 0 || col < 0 || row >= game->rows || col >= game->cols)
-    {
-        return 0;
-    }
-
-    // Check if direction is valid
-    if (direction != 'H' && direction != 'V')
-    {
-        return 0;
-    }
 
     //extract the word
     int start_index;
     int word_length = 0;
     if (direction == 'H'){
         start_index = col;
-        for(int i=col-1; game->board[row][i]!='.'; i--){
+        for(int i=col-1; i>=0; i--){
+            if(game->board[row][i]=='.'){
+                break;
+            }
             word_length++;
             start_index--;
         }
@@ -259,7 +265,10 @@ int is_valid_move(GameState *game, int row, int col, char direction, const char 
         }
     }else{
         start_index = row;
-        for(int i=row-1; game->board[i][col]!='.'; i--){
+        for(int i=row-1; i>=0; i--){
+            if(game->board[i][col]=='.'){
+                break;
+            }
             word_length++;
             start_index--;
         }
@@ -283,6 +292,12 @@ int is_valid_move(GameState *game, int row, int col, char direction, const char 
                 word[col - start_index + i] = *(tiles+i);
             }
         }
+        for(int i=row+strlen(tiles); i<game->rows; i++){
+            if(game->board[i][col]=='.'){
+                break;
+            }
+            word[i] = game->board[i][col];
+        }
     }else{
         for(int i=0; i<word_length; i++){
             if(start_index + i < game->rows){
@@ -294,63 +309,25 @@ int is_valid_move(GameState *game, int row, int col, char direction, const char 
                 word[row - start_index + i] = *(tiles+i);
             }
         }
-    }
-
-
-    if(!is_legal_word(word)){
-        return 0;
-    }
-
-    // Determine the number of tiles to be placed
-    int num_tiles = 0;
-    for (const char *tile = tiles; *tile != '\0'; tile++)
-    {
-        if (*tile != ' ')
-        {
-            num_tiles++;
-        }
-    }
-
-    if(num_tiles == (int)strlen(word)){
-        //covers existing word
-        return 0;
-    }
-
-    // Check if the move would exceed the maximum stack height
-    if (direction == 'H')
-    {
-        // Check horizontally
-        if ((col + num_tiles > game->cols) && is_legal_word(word))
-        {
-            // expand board
-            int required_cols = col + num_tiles - game->cols - 1;
-            expand_board(game, 0, required_cols);
-        }
-        for (int j = col; j < col + num_tiles; j++)
-        {
-            if (game->stack_heights[row][j] == 5)
-            {
-                return 0; // Stack height would exceed maximum
+        for(int i=col+strlen(tiles); i<game->cols; i++){
+            if(game->board[row][i]=='.'){
+                break;
             }
+            word[i] = game->board[row][i];
         }
     }
-    else
-    {
-        // Check vertically
-        if ((row + num_tiles > game->rows) && is_legal_word(word))
-        {
-            // expand board
-            int required_rows = row + num_tiles - game->rows - 1;
-            expand_board(game, required_rows, 0);
-        }
-        for (int i = row; i < row + num_tiles; i++)
-        {
-            if (game->stack_heights[i][col] == 5)
-            {
-                return 0; // Stack height would exceed maximum
-            }
-        }
-    }
+    printf("word length: %d", word_length);
+    printf("This is the word: %s", word);
+
+
+    // if(!is_legal_word(word)){
+    //     return 0;
+    // }
+
+    // if(num_tiles == (int)strlen(word)){
+    //     //covers existing word
+    //     return 0;
+    // }
 
     return 1;
 }
@@ -364,15 +341,17 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
     // (void)num_tiles_placed;
     // return NULL;
 
-    // if (!is_valid_move(game, row, col, direction, tiles))
-    // {
-    //     return game;
-    // }
+    // Check if row and col are valid
+    if (row < 0 || col < 0 || row >= game->rows || col >= game->cols)
+    {
+        return game;
+    }
 
-    // GameState *prev_state = copy_game_state(game);  // Create a copy of the current game state
-    // push(game->history, prev_state);  // Push the current state onto the history stack
-
-    *num_tiles_placed = 0;
+    // Check if direction is valid
+    if (direction != 'H' && direction != 'V')
+    {
+        return game;
+    }
 
     // Determine the number of tiles to be placed
     int num_tiles = 0;
@@ -383,6 +362,47 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
             num_tiles++;
         }
     }
+
+    // Check if the move would exceed the maximum stack height
+    if (direction == 'H')
+    {
+        // Check horizontally
+        for (int j = col; j < game->cols; j++)
+        {
+            if (game->stack_heights[row][j] == 5)
+            {
+                return game; // Stack height would exceed maximum
+            }
+        }
+        if ((col + num_tiles > game->cols))
+        {
+            // expand board
+            int required_cols = col + strlen(tiles) - game->cols;
+            expand_board(game, 0, required_cols);
+        }
+    }
+    else
+    {
+        // Check vertically
+        for (int i = row; i < game->rows; i++)
+        {
+            if (game->stack_heights[i][col] == 5)
+            {
+                return game; // Stack height would exceed maximum
+            }
+        }
+        if ((row + num_tiles > game->rows))
+        {
+            // expand board
+            int required_rows = row + num_tiles - game->rows;
+            expand_board(game, required_rows, 0);
+        }
+    }
+
+    // GameState *prev_state = copy_game_state(game);  // Create a copy of the current game state
+    // push(game->history, prev_state);  // Push the current state onto the history stack
+
+    *num_tiles_placed = 0;
 
     // Place tiles on the board
     if (direction == 'H')
@@ -417,14 +437,14 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
             }
         }
     }
-
+print_game(game);
+printf("Number tiles placed: %d\n", *num_tiles_placed);
     return game;
-    printf("Number of tiles placed: %d", *num_tiles_placed);
 }
 
 GameState* undo_place_tiles(GameState *game) {
-    (void)game;
-    return NULL;
+    // (void)game;
+    return game;
     // GameState *prev_state = pop(game->history);  // Pop the previous game state from the history
 
     // if (prev_state == NULL) {
