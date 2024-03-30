@@ -1,5 +1,16 @@
 #include <stdlib.h>
 
+typedef struct GameState GameState;
+
+typedef struct GameStateStackNode {
+    GameState *state;
+    struct GameStateStackNode *next;
+} GameStateStackNode;
+
+typedef struct {
+    GameStateStackNode *top;
+} GameStateStack;
+
 typedef struct GameState
 {
     // define your struct here
@@ -7,6 +18,7 @@ typedef struct GameState
     int **stack_heights;
     int rows;
     int cols;
+    GameStateStack *history;
 } GameState;
 
 GameState* initialize_game_state(const char *filename);

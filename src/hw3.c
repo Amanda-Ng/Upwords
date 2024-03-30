@@ -8,63 +8,63 @@
 
 #define DEBUG(...) fprintf(stderr, "[          ] [ DEBUG ] "); fprintf(stderr, __VA_ARGS__); fprintf(stderr, " -- %s()\n", __func__)
 
-// // Function to initialize a stack
-// GameStateStack *init_stack() {
-//     GameStateStack *stack = (GameStateStack *)malloc(sizeof(GameStateStack));
-//     stack->top = NULL;
-//     return stack;
-// }
+// Function to initialize a stack
+GameStateStack *init_stack() {
+    GameStateStack *stack = (GameStateStack *)malloc(sizeof(GameStateStack));
+    stack->top = NULL;
+    return stack;
+}
 
-// // Function to push a game state onto the stack
-// void push(GameStateStack *stack, GameState *state) {
-//     GameStateStackNode *node = (GameStateStackNode *)malloc(sizeof(GameStateStackNode));
-//     node->state = state;
-//     node->next = stack->top;
-//     stack->top = node;
-// }
+// Function to push a game state onto the stack
+void push(GameStateStack *stack, GameState *state) {
+    GameStateStackNode *node = (GameStateStackNode *)malloc(sizeof(GameStateStackNode));
+    node->state = state;
+    node->next = stack->top;
+    stack->top = node;
+}
 
-// // Function to pop a game state from the stack
-// GameState *pop(GameStateStack *stack) {
-//     if (stack->top == NULL) {
-//         return NULL;
-//     }
-//     GameStateStackNode *temp = stack->top;
-//     stack->top = stack->top->next;
-//     GameState *state = temp->state;
-//     free(temp);
-//     return state;
-// }
+// Function to pop a game state from the stack
+GameState *pop(GameStateStack *stack) {
+    if (stack->top == NULL) {
+        return NULL;
+    }
+    GameStateStackNode *temp = stack->top;
+    stack->top = stack->top->next;
+    GameState *state = temp->state;
+    // free(temp);
+    return state;
+}
 
-// // Function to create a deep copy of a GameState
-// GameState *copy_game_state(const GameState *original) {
-//     GameState *copy = (GameState *)malloc(sizeof(GameState));
+// Function to create a deep copy of a GameState
+GameState *copy_game_state(const GameState *original) {
+    GameState *copy = (GameState *)malloc(sizeof(GameState));
 
-//     copy->rows = original->rows;
-//     copy->cols = original->cols;
+    copy->rows = original->rows;
+    copy->cols = original->cols;
 
-//     copy->board = (char **)malloc(copy->rows * sizeof(char *));
-//     copy->stack_heights = (int **)malloc(copy->rows * sizeof(int *));
+    copy->board = (char **)malloc(copy->rows * sizeof(char *));
+    copy->stack_heights = (int **)malloc(copy->rows * sizeof(int *));
 
-//     for (int i = 0; i < copy->rows; i++) {
-//         copy->board[i] = (char *)malloc((copy->cols) * sizeof(char));
-//         copy->stack_heights[i] = (int *)malloc(copy->cols * sizeof(int));
+    for (int i = 0; i < copy->rows; i++) {
+        copy->board[i] = (char *)malloc((copy->cols) * sizeof(char));
+        copy->stack_heights[i] = (int *)malloc(copy->cols * sizeof(int));
 
-//         // Copy the contents of the board and stack_heights arrays
-//         strcpy(copy->board[i], original->board[i]);
-//         memcpy(copy->stack_heights[i], original->stack_heights[i], copy->cols * sizeof(int));
-//     }
+        // Copy the contents of the board and stack_heights arrays
+        strcpy(copy->board[i], original->board[i]);
+        memcpy(copy->stack_heights[i], original->stack_heights[i], copy->cols * sizeof(int));
+    }
 
-//     return copy;
-// }
+    return copy;
+}
 
 
-// void free_game_state_history(GameState *game) {
-//     while (game->history->top != NULL) {
-//         GameState *state = pop(game->history);
-//         free_game_state(state);
-//     }
-//     free(game->history);
-// }
+void free_game_state_history(GameState *game) {
+    while (game->history->top != NULL) {
+        GameState *state = pop(game->history);
+        free_game_state(state);
+    }
+    free(game->history);
+}
 
 void print_game(GameState* game){
     for(int i=0;i<game->rows; i++){
@@ -111,7 +111,7 @@ GameState* initialize_game_state(const char *filename) {
 
     // Allocate memory for the GameState struct
     GameState *game = (GameState *)malloc(sizeof(GameState));
-    //  game->history = init_stack();
+     game->history = init_stack();
 
     // Initialize the GameState struct with the dimensions of the board
     game->rows = rows;
@@ -155,7 +155,6 @@ GameState* initialize_game_state(const char *filename) {
             game->stack_heights[i][j] = (ch == '.') ? 0 : 1;
         }
     }
-// print_game(game);
 printf("Rows: %d", game->rows);
 printf("Cols: %d", game->cols);
 print_game(game);
@@ -309,15 +308,16 @@ int is_valid_move(GameState *game, int row, int col, char direction, const char 
                 word[row - start_index + i] = *(tiles+i);
             }
         }
-        for(int i=col+strlen(tiles); i<game->cols; i++){
-            if(game->board[row][i]=='.'){
-                break;
-            }
-            word[i] = game->board[row][i];
-        }
+        // for(int i=col+strlen(tiles); i<game->cols; i++){
+        //     if(game->board[row][i]=='.'){
+        //         break;
+        //     }
+        //     word[i] = game->board[row][i];
+        // }
     }
-    printf("word length: %d", word_length);
-    printf("This is the word: %s", word);
+    printf("word length: %d\n", word_length);
+    printf("Length of word: %d\n", (int)strlen(word));
+    printf("This is the word: %s\n", word);
 
 
     // if(!is_legal_word(word)){
@@ -353,16 +353,6 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
         return game;
     }
 
-    // Determine the number of tiles to be placed
-    int num_tiles = 0;
-    for (const char *tile = tiles; *tile != '\0'; tile++)
-    {
-        if (*tile != ' ')
-        {
-            num_tiles++;
-        }
-    }
-
     // Check if the move would exceed the maximum stack height
     if (direction == 'H')
     {
@@ -374,6 +364,8 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
                 return game; // Stack height would exceed maximum
             }
         }
+        GameState *prev_state = copy_game_state(game);  // Create a copy of the current game state
+        push(game->history, prev_state);  // Push the current state onto the history stack
         if ((col + (int)strlen(tiles) > game->cols))
         {
             // expand board
@@ -391,6 +383,8 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
                 return game; // Stack height would exceed maximum
             }
         }
+        GameState *prev_state = copy_game_state(game);  // Create a copy of the current game state
+        push(game->history, prev_state);  // Push the current state onto the history stack
         if ((row + (int)strlen(tiles) > game->rows))
         {
             // expand board
@@ -398,9 +392,6 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
             expand_board(game, required_rows, 0);
         }
     }
-print_game(game);
-    // GameState *prev_state = copy_game_state(game);  // Create a copy of the current game state
-    // push(game->history, prev_state);  // Push the current state onto the history stack
 
     *num_tiles_placed = 0;
 
@@ -409,8 +400,6 @@ print_game(game);
     {
         for (int j = 0; j < (int)strlen(tiles); j++)
         {
-            // Determine the height of the stack at the current position
-            // int stack_height = game->stack_heights[row][j];
             if(*(tiles+j) != ' '){
                 // Update the stack height
                 game->stack_heights[row][col+j]++;
@@ -444,16 +433,16 @@ printf("Number tiles placed: %d\n", *num_tiles_placed);
 
 GameState* undo_place_tiles(GameState *game) {
     // (void)game;
-    return game;
-    // GameState *prev_state = pop(game->history);  // Pop the previous game state from the history
-
-    // if (prev_state == NULL) {
-    //     return game;  // No previous state, return the current state unchanged
-    // }
-
-    // game = prev_state;  // Set the game state to the previous state
-
     // return game;
+    GameState *prev_state = pop(game->history);  // Pop the previous game state from the history
+
+    if (prev_state == NULL) {
+        return game;  // No previous state, return the current state unchanged
+    }
+
+    game = prev_state;  // Set the game state to the previous state
+
+    return game;
 }
 
 void free_game_state(GameState *game) {
