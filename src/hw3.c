@@ -374,7 +374,7 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
                 return game; // Stack height would exceed maximum
             }
         }
-        if ((col + num_tiles > game->cols))
+        if ((col + (int)strlen(tiles) > game->cols))
         {
             // expand board
             int required_cols = col + strlen(tiles) - game->cols;
@@ -391,14 +391,14 @@ GameState* place_tiles(GameState *game, int row, int col, char direction, const 
                 return game; // Stack height would exceed maximum
             }
         }
-        if ((row + num_tiles > game->rows))
+        if ((row + (int)strlen(tiles) > game->rows))
         {
             // expand board
-            int required_rows = row + num_tiles - game->rows;
+            int required_rows = row + strlen(tiles) - game->rows;
             expand_board(game, required_rows, 0);
         }
     }
-
+print_game(game);
     // GameState *prev_state = copy_game_state(game);  // Create a copy of the current game state
     // push(game->history, prev_state);  // Push the current state onto the history stack
 
