@@ -1,15 +1,15 @@
 #include <stdlib.h>
 
-// typedef struct GameState GameState;
+typedef struct GameState GameState;
 
-// typedef struct GameStateStackNode {
-//     GameState *state;
-//     struct GameStateStackNode *next;
-// } GameStateStackNode;
+typedef struct GameStateStackNode {
+    GameState *state;
+    struct GameStateStackNode *next;
+} GameStateStackNode;
 
-// typedef struct {
-//     GameStateStackNode *top;
-// } GameStateStack;
+typedef struct {
+    GameStateStackNode *top;
+} GameStateStack;
 
 typedef struct GameState
 {
